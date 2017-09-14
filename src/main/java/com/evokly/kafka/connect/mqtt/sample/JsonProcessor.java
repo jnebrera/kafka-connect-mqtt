@@ -22,7 +22,7 @@ public class JsonProcessor implements MqttMessageProcessor {
     private static final Logger log = LoggerFactory.getLogger(JsonProcessor.class);
     private MqttMessage mMessage;
     private Object mTopic;
-    private ObjectMapper mapper;
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public MqttMessageProcessor process(String topic, MqttMessage message) {
