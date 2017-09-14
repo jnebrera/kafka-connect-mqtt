@@ -3,6 +3,8 @@ package com.evokly.kafka.connect.mqtt.sample;
 import com.evokly.kafka.connect.mqtt.MqttMessageProcessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
@@ -39,7 +41,7 @@ public class JsonProcessor implements MqttMessageProcessor {
             Map<String, Object> value = mapper.readValue(mMessage.getPayload(), Map.class);
             records = new SourceRecord[]{new SourceRecord(null, null, kafkaTopic, null,
                     Schema.STRING_SCHEMA, mTopic,
-                    Schema.STRING_SCHEMA, value)};
+                    SchemaBuilder.struct().build(), value)};
         } catch (IOException e) {
             records = new SourceRecord[]{};
             log.error(e.getMessage(), e);
