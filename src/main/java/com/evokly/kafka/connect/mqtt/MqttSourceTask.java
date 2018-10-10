@@ -41,6 +41,7 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
     String mMqttClientId;
     BlockingQueue<MqttMessageProcessor> mQueue = new LinkedBlockingQueue<>();
     MqttSourceConnectorConfig mConfig;
+    MqttConnectOptions connectOptions;
 
     /**
      * Get the version of this task. Usually this should be the same as the corresponding
@@ -74,7 +75,7 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
 
 
         // Setup MQTT Connect Options
-        MqttConnectOptions connectOptions = new MqttConnectOptions();
+        connectOptions = new MqttConnectOptions();
 
         String sslCa = mConfig.getString(MqttSourceConstant.MQTT_SSL_CA_CERT);
         String sslCert = mConfig.getString(MqttSourceConstant.MQTT_SSL_CERT);
@@ -115,6 +116,10 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
                     mConfig.getString(MqttSourceConstant.MQTT_PASSWORD).toCharArray());
         }
 
+        initConnection();
+    }
+
+    public void initConnection() {
         // Connect to Broker
         try {
             // Address of the server to connect to, specified as a URI, is overridden using
@@ -164,7 +169,6 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
      * available.
      *
      * @return a list of source records
-     *
      * @throws InterruptedException thread is waiting, sleeping, or otherwise occupied,
      *                              and the thread is interrupted, either before or during the
      *                              activity
@@ -189,6 +193,8 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
     @Override
     public void connectionLost(Throwable cause) {
         log.error("MQTT connection lost!", cause);
+        stop();
+        initConnection();
     }
 
     /**
@@ -207,7 +213,6 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
      *
      * @param topic   name of the topic on the message was published to
      * @param message the actual message.
-     *
      * @throws Exception if a terminal error has occurred, and the client should be
      *                   shut down.
      */
@@ -218,7 +223,7 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
         this.mQueue.add(
                 mConfig.getConfiguredInstance(MqttSourceConstant.MESSAGE_PROCESSOR,
                         MqttMessageProcessor.class)
-                    .process(topic, message)
+                        .process(topic, message)
         );
     }
 }
