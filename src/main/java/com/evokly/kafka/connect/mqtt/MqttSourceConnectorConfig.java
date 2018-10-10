@@ -38,6 +38,8 @@ public class MqttSourceConnectorConfig extends AbstractConfig {
                         "use clean session in connection?")
                 .define(MqttSourceConstant.MQTT_CONNECTION_TIMEOUT, Type.INT, 30, Importance.LOW,
                         "connection timeout to use")
+                .define(MqttSourceConstant.MQTT_CONNECTION_RETRIES, Type.INT, 10, Importance.LOW,
+                        "number of retry connection")
                 .define(MqttSourceConstant.MQTT_KEEP_ALIVE_INTERVAL, Type.INT, 60, Importance.LOW,
                         "keepalive interval to use")
                 .define(MqttSourceConstant.MQTT_SERVER_URIS, Type.STRING,

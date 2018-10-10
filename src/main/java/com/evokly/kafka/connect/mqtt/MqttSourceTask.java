@@ -121,17 +121,34 @@ public class MqttSourceTask extends SourceTask implements MqttCallback {
 
     public void initConnection() {
         // Connect to Broker
-        try {
-            // Address of the server to connect to, specified as a URI, is overridden using
-            // MqttConnectOptions#setServerURIs(String[]) bellow.
-            mClient = new MqttClient("tcp://127.0.0.1:1883", mMqttClientId,
-                    new MemoryPersistence());
-            mClient.setCallback(this);
-            mClient.connect(connectOptions);
 
-            log.info("[{}] Connected to Broker", mMqttClientId);
-        } catch (MqttException e) {
-            log.error("[{}] Connection to Broker failed!", mMqttClientId, e);
+        boolean connected = false;
+        int retries = 0;
+
+        while (!connected && retries < mConfig.getInt(MqttSourceConstant.MQTT_CONNECTION_RETRIES)) {
+            try {
+                // Address of the server to connect to, specified as a URI, is overridden using
+                // MqttConnectOptions#setServerURIs(String[]) bellow.
+                mClient = new MqttClient("tcp://127.0.0.1:1883", mMqttClientId,
+                        new MemoryPersistence());
+                mClient.setCallback(this);
+                mClient.connect(connectOptions);
+
+                log.info("[{}] Connected to Broker", mMqttClientId);
+                connected = true;
+            } catch (MqttException e) {
+                log.error("[{}] Connection to Broker failed!", mMqttClientId, e);
+                connected = false;
+                retries++;
+                try {
+                    log.info("Trying to reconnect try #{}/" +
+                            mConfig.getInt(MqttSourceConstant.MQTT_CONNECTION_RETRIES) +
+                            " waiting(5 sec)", retries, e);
+                    Thread.sleep(5000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
         }
 
         // Setup topic
